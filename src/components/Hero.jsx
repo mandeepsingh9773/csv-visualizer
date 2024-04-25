@@ -16,6 +16,8 @@ const Hero = () => {
   const [csvData, setCsvData] = useState([]);
   const [selectedColumn, setSelectedColumn] = useState("");
   const [numericColumns, setNumericColumns] = useState([]);
+  const [selectedStringColumn, setSelectedStringColumn] = useState("");
+  const [stringColumns, setStringColumns] = useState([]);
 
   useEffect(() => {
     // Filter numeric columns when csvData changes
@@ -23,6 +25,12 @@ const Hero = () => {
       csvData.every((row) => !isNaN(parseFloat(row[col])))
     );
     setNumericColumns(newNumericColumns);
+    const newStringColumns = Object.keys(csvData[0] || {}).filter(
+      (col) =>
+        !newNumericColumns.includes(col) &&
+        csvData.every((row) => typeof row[col] === "string")
+    );
+    setStringColumns(newStringColumns);
   }, [csvData]);
 
   const navLinks = [
@@ -48,11 +56,29 @@ const Hero = () => {
     },
   ];
 
+  const handleStringColumnSelect = (event) => {
+    setSelectedStringColumn(event.target.value);
+    const selectedColumn = event.target.value;
+    const chartData = csvData.map((row) => row[selectedColumn]);
+    const labels = [...new Set(chartData)]; // Extract unique values for labels
+    const series = labels.map((label) => {
+      const count = chartData.filter((value) => value === label).length;
+      return count;
+    });
+
+    setDonutChartOptions((prevOptions) => ({
+      ...prevOptions,
+      series: series,
+      options: {
+        ...prevOptions.options,
+        labels: labels,
+      },
+    }));
+  };
+
   const handleColumnSelect = (event) => {
     const selectedColumn = event.target.value;
     setSelectedColumn(selectedColumn);
-
-    // Update chart options based on selected column
     const chartData = csvData.map((row) => row[selectedColumn]);
     setChartOptions((prevOptions) => ({
       ...prevOptions,
@@ -64,20 +90,36 @@ const Hero = () => {
       ],
     }));
   };
+
   const [chartOptions, setChartOptions] = useState({
     series: [
       {
-        name: "Data Series",
+        name: "Sales",
         data: [],
       },
     ],
     options: {
       chart: {
-        type: "line",
+        type: "bar",
+      },
+      plotOptions: {
+        bar: {
+          horizontal: true,
+        },
       },
       xaxis: {
         type: "category",
       },
+    },
+  });
+
+  const [donutChartOptions, setDonutChartOptions] = useState({
+    series: [],
+    options: {
+      chart: {
+        type: "donut",
+      },
+      labels: [],
     },
   });
 
@@ -104,7 +146,7 @@ const Hero = () => {
           ],
           options: {
             chart: {
-              type: "line",
+              type: "bar",
             },
             xaxis: {
               categories: categories,
@@ -113,6 +155,27 @@ const Hero = () => {
           },
         });
         setCsvData(filteredData);
+
+        if (filteredData.length > 0) {
+          const firstColumn = Object.keys(filteredData[0])[0]; //To Select the first column by default
+          setSelectedStringColumn(firstColumn);
+          const donutChartData = filteredData.map((row) => row[firstColumn]);
+          const labels = [...new Set(donutChartData)]; // Extracting unique values for labels
+          const series = labels.map((label) => {
+            const count = donutChartData.filter(
+              (value) => value === label
+            ).length;
+            return count;
+          });
+          setDonutChartOptions((prevOptions) => ({
+            ...prevOptions,
+            series: series,
+            options: {
+              ...prevOptions.options,
+              labels: labels,
+            },
+          }));
+        }
         console.log(filteredData);
       },
     });
@@ -120,31 +183,27 @@ const Hero = () => {
 
   return (
     <>
-      <div className="searchbar font-custom1 mx-auto relative bg-white min-w-sm max-w-3xl flex flex-row md:flex-row items-center justify-center border py-2 px-2 rounded-lg gap-2 shadow-xl focus-within:border-gray-300">
+      {/* <div className="searchbar font-custom1 mx-auto relative bg-white min-w-sm max-w-3xl flex flex-row md:flex-row items-center justify-center border py-2 px-2 rounded-lg gap-2 shadow-xl focus-within:border-gray-300">
         <button
-          // onClick={generateAnswer}
           className="bg-white text-white fill-white active:scale-95 rounded-full"
         >
           <Search color="black" className="size-6 ml-4" />
         </button>
         <input
-          // value={question}
-          // onChange={(e) => setQuestion(e.target.value)}
           id="search-bar"
           placeholder="Search"
           className="px-2 py-2 w-full rounded-md flex-1 outline-none bg-white"
         />
         <button className="hover:cursor-pointer active:scale-95 overflow-hidden flex items-center">
-          {/* <Upload color="black" className="size-6 mr-2" /> */}
         </button>
-      </div>
+      </div> */}
       <div className="uploadbar flex justify-center pt-8">
         <input type="file" accept=".csv" onChange={handleFileUpload} />
       </div>
       <div className="dropdown flex justify-center pt-8 gap-x-6">
-        <div className="yAxis">
+        <div className="bar-chart">
           <label htmlFor="yAxis" className="text-lg pr-4">
-            Y-axis :{" "}
+            Create BarChart :{" "}
           </label>
           <select
             className="border border-zinc-950"
@@ -154,6 +213,24 @@ const Hero = () => {
             <option value="">Select a column</option>
             {csvData.length > 0 &&
               numericColumns.map((columnName) => (
+                <option key={columnName} value={columnName}>
+                  {columnName}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div className="donut-chart">
+          <label htmlFor="xAxis" className="text-lg pr-4">
+            Create DonutChart :{" "}
+          </label>
+          <select
+            className="border border-zinc-950"
+            value={selectedStringColumn}
+            onChange={handleStringColumnSelect}
+          >
+            <option value="">Select a column</option>
+            {csvData.length > 0 &&
+              stringColumns.map((columnName) => (
                 <option key={columnName} value={columnName}>
                   {columnName}
                 </option>
@@ -176,18 +253,24 @@ const Hero = () => {
           </div>
         </div>
         <div className="chartarea w-full border border-r-1 rounded-xl shadow-xl flex flex-col py-8 px-8 ml-8 mt-8 mr-8">
-          <div className="grid grid-cols-2">
-            {csvData.length > 0 ? (
+          {csvData.length > 0 ? (
+            <div className="grid grid-cols-2">
               <Chart
                 options={chartOptions.options}
                 series={chartOptions.series}
                 type="bar"
-                width="800"
+                width="600"
               />
-            ) : (
-              <div className="flex"> Upload a csv file !</div>
-            )}
-          </div>
+              <Chart
+                options={donutChartOptions.options}
+                series={donutChartOptions.series}
+                type="donut"
+                width="600"
+              />
+            </div>
+          ) : (
+            <div className="flex"> Upload a .csv file !</div>
+          )}
         </div>
       </div>
     </>
