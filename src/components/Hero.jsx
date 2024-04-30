@@ -35,7 +35,7 @@ const Hero = () => {
 
   const navLinks = [
     {
-      name: "Dashboard",
+      name: "Board",
       icon: LayoutDashboard,
     },
     {
@@ -45,15 +45,7 @@ const Hero = () => {
     {
       name: "Activity",
       icon: Clock4Icon,
-    },
-    {
-      name: "Analytics",
-      icon: BarChart3Icon,
-    },
-    {
-      name: "Get Help",
-      icon: HelpCircleIcon,
-    },
+    }
   ];
 
   const handleStringColumnSelect = (event) => {
@@ -197,16 +189,16 @@ const Hero = () => {
         <button className="hover:cursor-pointer active:scale-95 overflow-hidden flex items-center">
         </button>
       </div> */}
-      <div className="uploadbar flex justify-center pt-8">
-        <input type="file" accept=".csv" onChange={handleFileUpload} />
+      <div className="uploadbar font-custom1 flex justify-center pt-8">
+        <input className="border" type="file" accept=".csv" onChange={handleFileUpload} />
       </div>
-      <div className="dropdown flex justify-center pt-8 gap-x-6">
+      <div className="dropdown font-custom1 flex justify-center pt-8 gap-x-6">
         <div className="bar-chart">
           <label htmlFor="yAxis" className="text-lg pr-4">
             Create BarChart :{" "}
           </label>
           <select
-            className="border border-zinc-950"
+            className="border border-zinc-950 rounded-lg"
             value={selectedColumn}
             onChange={handleColumnSelect}
           >
@@ -224,7 +216,7 @@ const Hero = () => {
             Create DonutChart :{" "}
           </label>
           <select
-            className="border border-zinc-950"
+            className="border border-zinc-950 rounded-lg"
             value={selectedStringColumn}
             onChange={handleStringColumnSelect}
           >
