@@ -1,6 +1,6 @@
 import React from "react";
 import Hero from "./Hero";
-import Navbar from "./Sidebar";
+import Navbar from "./Navbar";
 
 const Playground = () => {
   return (
